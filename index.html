@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer & Stopwatch</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .tab.active {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .content {
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        .display {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .time {
+            font-size: 72px;
+            font-weight: 200;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-primary {
+            background: #34c759;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2fb84d;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-danger {
+            background: #ff3b30;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e6352a;
+        }
+
+        .timer-input {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .input-group input {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 32px;
+            text-align: center;
+            font-weight: 300;
+            backdrop-filter: blur(10px);
+            margin-bottom: 8px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #0a84ff;
+        }
+
+        .input-group label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 400;
+        }
+
+        .laps {
+            margin-top: 30px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .lap-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .lap-item:last-child {
+            border-bottom: none;
+        }
+
+        .lap-number {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('timer')">Timer</div>
+            <div class="tab" onclick="switchTab('stopwatch')">Stopwatch</div>
+        </div>
+
+        <div id="timer" class="content active">
+            <div class="timer-input">
+                <div class="input-group">
+                    <input type="number" id="hours" min="0" max="23" value="0" />
+                    <label>jam</label>
+                </div>
+                <div class="input-group">
+                    <input type="number" id="minutes" min="0" max="59" value="0" />
+                    <label>menit</label>
+                </div>
+                <div class="input-group">
+                    <input type="number" id="seconds" min="0" max="59" value="0" />
+                    <label>detik</label>
+                </div>
+            </div>
+
+            <div class="display">
+                <div class="time" id="timerDisplay">00:00:00</div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-secondary" id="timerReset" onclick="resetTimer()">Reset</button>
+                <button class="btn btn-primary" id="timerStart" onclick="startTimer()">Mulai</button>
+            </div>
+        </div>
+
+        <div id="stopwatch" class="content">
+            <div class="display">
+                <div class="time" id="stopwatchDisplay">00:00:00</div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-secondary" id="lapBtn" onclick="recordLap()" style="display: none;">Lap</button>
+                <button class="btn btn-secondary" id="stopwatchReset" onclick="resetStopwatch()">Reset</button>
+                <button class="btn btn-primary" id="stopwatchStart" onclick="startStopwatch()">Mulai</button>
+            </div>
+
+            <div class="laps" id="laps"></div>
+        </div>
+    </div>
+
+    <script>
+        let timerInterval = null;
+        let timerRemaining = 0;
+        let timerRunning = false;
+
+        let stopwatchInterval = null;
+        let stopwatchTime = 0;
+        let stopwatchRunning = false;
+        let laps = [];
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab).classList.add('active');
+        }
+
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (!timerRunning) {
+                if (timerRemaining === 0) {
+                    const h = parseInt(document.getElementById('hours').value) || 0;
+                    const m = parseInt(document.getElementById('minutes').value) || 0;
+                    const s = parseInt(document.getElementById('seconds').value) || 0;
+                    timerRemaining = (h * 3600 + m * 60 + s) * 1000;
+                    
+                    if (timerRemaining === 0) return;
+                }
+                
+                timerRunning = true;
+                document.getElementById('timerStart').textContent = 'Jeda';
+                document.getElementById('timerStart').classList.remove('btn-primary');
+                document.getElementById('timerStart').classList.add('btn-danger');
+                
+                const startTime = Date.now();
+                const initialRemaining = timerRemaining;
+                
+                timerInterval = setInterval(() => {
+                    const elapsed = Date.now() - startTime;
+                    timerRemaining = Math.max(0, initialRemaining - elapsed);
+                    document.getElementById('timerDisplay').textContent = formatTime(timerRemaining);
+                    
+                    if (timerRemaining === 0) {
+                        resetTimer();
+                        alert('Timer selesai!');
+                    }
+                }, 100);
+            } else {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                document.getElementById('timerStart').textContent = 'Lanjut';
+                document.getElementById('timerStart').classList.remove('btn-danger');
+                document.getElementById('timerStart').classList.add('btn-primary');
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            timerRemaining = 0;
+            document.getElementById('timerDisplay').textContent = '00:00:00';
+            document.getElementById('timerStart').textContent = 'Mulai';
+            document.getElementById('timerStart').classList.remove('btn-danger');
+            document.getElementById('timerStart').classList.add('btn-primary');
+            document.getElementById('hours').value = '0';
+            document.getElementById('minutes').value = '0';
+            document.getElementById('seconds').value = '0';
+        }
+
+        function startStopwatch() {
+            if (!stopwatchRunning) {
+                stopwatchRunning = true;
+                document.getElementById('stopwatchStart').textContent = 'Berhenti';
+                document.getElementById('stopwatchStart').classList.remove('btn-primary');
+                document.getElementById('stopwatchStart').classList.add('btn-danger');
+                document.getElementById('lapBtn').style.display = 'flex';
+                document.getElementById('stopwatchReset').style.display = 'none';
+                
+                const startTime = Date.now() - stopwatchTime;
+                
+                stopwatchInterval = setInterval(() => {
+                    stopwatchTime = Date.now() - startTime;
+                    document.getElementById('stopwatchDisplay').textContent = formatTime(stopwatchTime);
+                }, 10);
+            } else {
+                clearInterval(stopwatchInterval);
+                stopwatchRunning = false;
+                document.getElementById('stopwatchStart').textContent = 'Mulai';
+                document.getElementById('stopwatchStart').classList.remove('btn-danger');
+                document.getElementById('stopwatchStart').classList.add('btn-primary');
+                document.getElementById('lapBtn').style.display = 'none';
+                document.getElementById('stopwatchReset').style.display = 'flex';
+            }
+        }
+
+        function resetStopwatch() {
+            clearInterval(stopwatchInterval);
+            stopwatchRunning = false;
+            stopwatchTime = 0;
+            laps = [];
+            document.getElementById('stopwatchDisplay').textContent = '00:00:00';
+            document.getElementById('stopwatchStart').textContent = 'Mulai';
+            document.getElementById('stopwatchStart').classList.remove('btn-danger');
+            document.getElementById('stopwatchStart').classList.add('btn-primary');
+            document.getElementById('laps').innerHTML = '';
+            document.getElementById('lapBtn').style.display = 'none';
+            document.getElementById('stopwatchReset').style.display = 'flex';
+        }
+
+        function recordLap() {
+            laps.unshift(stopwatchTime);
+            const lapsContainer = document.getElementById('laps');
+            lapsContainer.innerHTML = '';
+            
+            laps.forEach((lap, index) => {
+                const lapItem = document.createElement('div');
+                lapItem.className = 'lap-item';
+                lapItem.innerHTML = `
+                    <span class="lap-number">Lap ${laps.length - index}</span>
+                    <span>${formatTime(lap)}</span>
+                `;
+                lapsContainer.appendChild(lapItem);
+            });
+        }
+    </script>
+</body>
+</html>
